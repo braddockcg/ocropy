@@ -269,7 +269,9 @@ for trial in range(start,args.ntrain):
         network.lnorm.measure(amax(line)-line)
         line = network.lnorm.normalize(line,cval=amax(line))
     else:
-        assert "dew.png" in fname,"input must already be dewarped"
+        # assert "dew.png" in fname,"input must already be dewarped"
+        line = ocrolib.lineest.scale_to_h(line, network.lnorm.target_height,
+                                          cval=amax(line))
 
     if line.size<10 or amax(line)==amin(line):
         print "EMPTY-INPUT"
