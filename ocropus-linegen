@@ -186,12 +186,12 @@ def genline(text,fontfile=None,size=36,sigma=0.5,threshold=0.5):
         y_end = y_start + pyrandom.randint(-text_height / 5, text_height / 5)
         draw.line(((250, y_start), (250 + text_width, y_end)), width=4)
     if args.hilolines:
-        if pyrandom.randint(0, 2) == 0:
+        if pyrandom.randint(0, 1) == 0:
             (text_width, text_height) = draw.textsize(text, font=font)
             y_start = pyrandom.randint(20 + text_height, 20 + text_height + 20)
             y_end = y_start + pyrandom.randint(-text_height / 7, text_height / 7)
             draw.line(((250, y_start), (250 + text_width, y_end)), width=5)
-        if pyrandom.randint(0, 2) == 0:
+        if pyrandom.randint(0, 1) == 0:
             (text_width, text_height) = draw.textsize(text, font=font)
             y_start = pyrandom.randint(0, 20)
             y_end = y_start + pyrandom.randint(-text_height / 7, text_height / 7)
