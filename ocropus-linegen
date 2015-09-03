@@ -30,6 +30,10 @@ parser.add_argument('--numdir',action="store_true")
 parser.add_argument('-C','--cleanup',default='[_~#]')
 parser.add_argument('-D','--debug_show',default=None,
     help="select a class for stepping through")
+parser.add_argument('-l', '--lines', action="store_true")
+parser.add_argument('--hilolines', action="store_true",
+                    help='lines above and below the text')
+
 args = parser.parse_args()
 
 if "-" in args.sizes:
@@ -146,8 +150,10 @@ def bounding_box(a):
     return (ys.start,xs.start,ys.stop,xs.stop)
 
 base = args.base
-print "base",base
-os.system("rm -rf "+base)
+if os.path.exists(base):
+    print "ERROR: ", base, " already exists"
+    sys.exit(-1)
+#os.system("rm -rf " + base)
 os.mkdir(base)
 
 def crop(image,pad=1):
@@ -174,12 +180,28 @@ def genline(text,fontfile=None,size=36,sigma=0.5,threshold=0.5):
     draw.rectangle((0,0,6000,6000),fill="white")
     #print "\t",size,font
     draw.text((250,20),text,fill="black",font=font)
+    if args.lines:
+        (text_width, text_height) = draw.textsize(text, font=font)
+        y_start = pyrandom.randint(20, 20 + text_height)
+        y_end = y_start + pyrandom.randint(-text_height / 5, text_height / 5)
+        draw.line(((250, y_start), (250 + text_width, y_end)), width=4)
+    if args.hilolines:
+        if pyrandom.randint(0, 2) == 0:
+            (text_width, text_height) = draw.textsize(text, font=font)
+            y_start = pyrandom.randint(20 + text_height, 20 + text_height + 20)
+            y_end = y_start + pyrandom.randint(-text_height / 7, text_height / 7)
+            draw.line(((250, y_start), (250 + text_width, y_end)), width=5)
+        if pyrandom.randint(0, 2) == 0:
+            (text_width, text_height) = draw.textsize(text, font=font)
+            y_start = pyrandom.randint(0, 20)
+            y_end = y_start + pyrandom.randint(-text_height / 7, text_height / 7)
+            draw.line(((250, y_start), (250 + text_width, y_end)), width=5)
     a = asarray(image,'f')
     a = a*1.0/amax(a)
     if sigma>0.0:
         a = filters.gaussian_filter(a,sigma)
     a += clip(randn(*a.shape)*0.2,-0.25,0.25)
-    a = rgeometry(a)
+    a = rgeometry(a, eps=0.15, delta=0.7)
     a = array(a>threshold,'f')
     a = crop(a,pad=3)
     # FIXME add grid warping here
