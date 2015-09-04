@@ -256,6 +256,8 @@ for trial in range(start,args.ntrain):
     else:
         fname = pyrandom.sample(inputs,1)[0]
 
+    print fname
+
     base,_ = ocrolib.allsplitext(fname)
     try:
         line = ocrolib.read_image_gray(fname)
@@ -270,8 +272,14 @@ for trial in range(start,args.ntrain):
         line = network.lnorm.normalize(line,cval=amax(line))
     else:
         # assert "dew.png" in fname,"input must already be dewarped"
+        cval= amax(line)
+        h, w = line.shape
+        line = vstack([cval * ones((1, w)), line, cval * ones((1, w))])
         line = ocrolib.lineest.scale_to_h(line, network.lnorm.target_height,
                                           cval=amax(line))
+    # print "line", "max", amax(line), "min", amin(line)
+
+    # imsave("/tmp/" + os.path.basename(base) + ".png", line, cmap='gray')
 
     if line.size<10 or amax(line)==amin(line):
         print "EMPTY-INPUT"
