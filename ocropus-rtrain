@@ -272,9 +272,9 @@ for trial in range(start,args.ntrain):
         line = network.lnorm.normalize(line,cval=amax(line))
     else:
         # assert "dew.png" in fname,"input must already be dewarped"
-        cval= amax(line)
-        h, w = line.shape
-        line = vstack([cval * ones((1, w)), line, cval * ones((1, w))])
+        # cval= amax(line)
+        # h, w = line.shape
+        # line = vstack([cval * ones((1, w)), line, cval * ones((1, w))])
         line = ocrolib.lineest.scale_to_h(line, network.lnorm.target_height,
                                           cval=amax(line))
     # print "line", "max", amax(line), "min", amin(line)
