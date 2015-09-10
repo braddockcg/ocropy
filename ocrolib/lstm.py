@@ -31,6 +31,7 @@ from ocrolib.native import *
 from ocrolib import edist
 import nutils
 import unicodedata
+from scipy.ndimage.morphology import binary_closing
 
 initial_range = 0.1
 
@@ -744,10 +745,13 @@ def translate_back0(outputs,threshold=0.25):
 
 from scipy.ndimage import measurements,filters
 
-def translate_back(outputs,threshold=0.7,pos=0):
+def translate_back(outputs,threshold=0.7,pos=0,min_space_width=2):
     """Translate back. Thresholds on class 0, then assigns
     the maximum class to each region."""
-    labels,n = measurements.label(outputs[:,0]<threshold)
+    spaces = outputs[:,0] < threshold
+    if min_space_width > 0:
+        spaces = binary_closing(spaces, iterations=min_space_width)
+    labels,n = measurements.label(spaces)
     mask = tile(labels.reshape(-1,1),(1,outputs.shape[1]))
     maxima = measurements.maximum_position(outputs,mask,arange(1,amax(mask)+1))
     if pos: return maxima
@@ -981,4 +985,3 @@ def getstates_for_display(net):
     if isinstance(net,Stacked) and isinstance(net.nets[0],LSTM):
         return net.nets[0].state[:net.nets[0].last_n]
     return None
-
