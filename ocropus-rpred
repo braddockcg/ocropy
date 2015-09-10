@@ -7,6 +7,7 @@ import os.path
 import ocrolib
 import argparse
 import matplotlib
+import scipy
 from multiprocessing import Pool
 from ocrolib import edist
 from collections import Counter
@@ -84,9 +85,9 @@ if len(args.files)<1:
     parser.print_help()
     sys.exit(0)
 
-print 
+print
 print "#"*10,(" ".join(sys.argv))[:60]
-print 
+print
 
 
 inputs = ocrolib.glob_all(args.files)
@@ -101,8 +102,15 @@ if args.show>=0 or args.save is not None:
 
 try:
   network = ocrolib.load_object(args.model,verbose=1)
+  print "MODEL LOADED", args.model
+  print network.lstm.learning_rate, 'learning rate'
+  print network.Ni, 'number of inputs (height)'
+  print network.lstm.noutputs(), 'number of outputs'
+  #print network.lstm.dims[1], 'number of hidden units'
+  print network.codec.size(), 'codec size'
+  print network.last_trial, 'number of trials'
   for x in network.walk(): x.postLoad()
-  for x in network.walk(): 
+  for x in network.walk():
       if isinstance(x,lstm.LSTM):
           x.allocate(5000)
 except ocrolib.FileNotFound:
@@ -135,7 +143,7 @@ def process1(arg):
         check = check_line(amax(line)-line)
         if check is not None:
             print fname,"SKIPPED",check,"(use -n to disable this check)"
-            return (0,[],0,trial,fname)            
+            return (0,[],0,trial,fname)
 
     if not args.nolineest:
         assert "dew.png" not in fname,"don't dewarp dewarped images"
@@ -219,15 +227,17 @@ def process1(arg):
         title(transcript)
         subplot(312)
         gca().set_xticks([])
-        imshow(network.outputs.T[1:],vmin=0,cmap=cm.hot)
+        outimage = network.outputs.T[1:]
+        outimage = scipy.misc.imresize(outimage, (line.shape[1], line.shape[0]))
+        imshow(outimage,vmin=0,cmap=cm.hot)
         title(pred[:80])
         subplot(313)
         plot(network.outputs[:,0],color='yellow',linewidth=3,alpha=0.5)
         plot(network.outputs[:,1],color='green',linewidth=3,alpha=0.5)
         plot(amax(network.outputs[:,2:],axis=1),color='blue',linewidth=3,alpha=0.5)
-        plot(network.aligned[:,0],color='orange',linestyle='dashed',alpha=0.7)
-        plot(network.aligned[:,1],color='green',linestyle='dashed',alpha=0.5)
-        plot(amax(network.aligned[:,2:],axis=1),color='blue',linestyle='dashed',alpha=0.5)
+        #plot(network.aligned[:,0],color='orange',linestyle='dashed',alpha=0.7)
+        #plot(network.aligned[:,1],color='green',linestyle='dashed',alpha=0.5)
+        #plot(amax(network.aligned[:,2:],axis=1),color='blue',linestyle='dashed',alpha=0.5)
         if args.save is not None:
             draw()
             savename = args.save
