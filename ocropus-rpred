@@ -7,6 +7,7 @@ import os.path
 import ocrolib
 import argparse
 import matplotlib
+import cPickle
 import scipy
 from multiprocessing import Pool
 from ocrolib import edist
@@ -208,6 +209,21 @@ def process1(arg):
     if not args.quiet:
         print fname,":",pred
     ocrolib.write_text(base+".txt",pred)
+
+    # Save pickled output details
+    tosave = {}
+    tosave['fname'] = fname
+    tosave['hypothesis'] = pred
+    tosave['line'] = line
+    tosave['outputs'] = network.outputs
+    tosave['code2char'] = network.codec.code2char
+    tosave['char2code'] = network.codec.char2code
+    if os.path.exists(base+".gt.txt"):
+        tosave['truth'] = ocrolib.read_text(base+".gt.txt")
+    else:
+        tosave['truth'] = None
+    with open(base + ".cpickle", "wb") as f:
+        cPickle.dump(tosave, f, cPickle.HIGHEST_PROTOCOL)
 
     if args.show>0 or args.save is not None:
         ion()
